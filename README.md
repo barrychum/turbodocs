@@ -30,7 +30,7 @@ This project is a simple Content Management System (CMS) for managing and viewin
 - **/markdowns**: Directory containing markdown files and an index.json file.
   - **file1.md**, **file2.md**: Sample markdown files.
   - **/subfolder/file3.md**: A markdown file inside a subfolder.
-  - **/subfolder/image.png**: An image file referenced in file3.md.
+  - **/subfolder/assets/image.png**: An image file referenced in file3.md.
   - **index.json**: Contains a list of markdown files and their tags.
 - **generate_index.py**: A Python script to generate the index.json file for all markdown files.
 
@@ -97,10 +97,6 @@ Here is an image:
 
 ![Description of the image](./image.png)
 ```
-
-## Contributing
-
-Contributions are welcome! Please fork this repository and submit pull requests with improvements.
 
 ## License
 
