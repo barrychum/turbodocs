@@ -45,6 +45,7 @@ body {
 .front-matter {
     font-size: small;
     color: gray;
-    margin-bottom: 10px;
+    margin-bottom: 3px;
+    margin-top: 3px;
     font-synthesis-weight: 200;
 }
