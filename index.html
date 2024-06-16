@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown CMS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #search { margin-bottom: 10px; width: 100%; padding: 5px; font-size: 14px; }
+        #results { margin-bottom: 10px; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; font-size: 12px; display: none; }
+        .result { cursor: pointer; margin: 5px 0; padding: 5px; border-bottom: 1px solid #ccc; }
+        .result:hover, .result.selected { background-color: #f0f0f0; }
+        .result .tags { font-size: 10px; color: gray; }  /* Added CSS for tags */
+        #content { border-top: 1px solid #ccc; padding-top: 10px; font-size: 14px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+</head>
+<body>
+    <input type="text" id="search" placeholder="Search by tags...">
+    <div id="results"></div>
+    <div id="content"></div>
+
+    <script>
+        let fuse;
+        let items;
+        let selectedResultIndex = -1;
+
+        const fetchMarkdownFiles = async () => {
+            const response = await fetch('markdowns/index.json');
+            items = await response.json();
+            const options = {
+                keys: ['tags'],
+                threshold: 0.3
+            };
+            fuse = new Fuse(items, options);
+        };
+
+        const adjustRelativePaths = (htmlContent, filePath) => {
+            const basePath = filePath.substring(0, filePath.lastIndexOf('/') + 1);
+            return htmlContent.replace(/src="(\.\/[^"]+)"/g, (match, p1) => {
+                return `src="${basePath}${p1.substring(2)}"`;
+            });
+        };
+
+        const renderMarkdown = async (file) => {
+            const response = await fetch(`markdowns/${file}`);
+            let text = await response.text();
+            text = marked.parse(text);
+            text = adjustRelativePaths(text, `markdowns/${file}`);
+            document.getElementById('content').innerHTML = text;
+        };
+
+        const createResultElement = (item) => {
+            const div = document.createElement('div');
+            div.className = 'result';
+            div.innerHTML = `<span>${item.file}</span>: <span class="tags">${item.tags}</span>`;
+            div.onclick = () => selectResult(item, div);
+            return div;
+        };
+
+        const selectResult = (item, element) => {
+            document.querySelectorAll('.result').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            renderMarkdown(item.file);
+            document.getElementById('results').style.display = 'none';
+        };
+
+        const updateResults = (results) => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            results.forEach((result, index) => {
+                const resultElement = createResultElement(result.item);
+                if (index === selectedResultIndex) {
+                    resultElement.classList.add('selected');
+                }
+                resultsDiv.appendChild(resultElement);
+            });
+        };
+
+        const handleKeyDown = (e) => {
+            const resultsDiv = document.getElementById('results');
+            const results = resultsDiv.querySelectorAll('.result');
+            if (e.key === 'ArrowDown') {
+                selectedResultIndex = (selectedResultIndex + 1) % results.length;
+                updateResults(fuse.search(document.getElementById('search').value));
+            } else if (e.key === 'ArrowUp') {
+                selectedResultIndex = (selectedResultIndex - 1 + results.length) % results.length;
+                updateResults(fuse.search(document.getElementById('search').value));
+            } else if (e.key === 'Enter') {
+                if (selectedResultIndex >= 0 && selectedResultIndex < results.length) {
+                    results[selectedResultIndex].click();
+                }
+            }
+        };
+
+        document.getElementById('search').addEventListener('input', (e) => {
+            const query = e.target.value;
+            if (query) {
+                const results = fuse.search(query);
+                updateResults(results);
+                document.getElementById('results').style.display = 'block';
+                selectedResultIndex = -1;
+            } else {
+                document.getElementById('results').style.display = 'none';
+            }
+        });
+
+        document.getElementById('search').addEventListener('keydown', handleKeyDown);
+
+        // Initial fetch to set up Fuse.js
+        fetchMarkdownFiles();
+    </script>
+</body>
+</html>

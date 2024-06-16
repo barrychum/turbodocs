@@ -1,0 +1,14 @@
+[
+    {
+        "file": "file1.md",
+        "tags": "javascript, web, tutorial"
+    },
+    {
+        "file": "file2.md",
+        "tags": "css, design, tutorial"
+    },
+    {
+        "file": "subfolder/file3.md",
+        "tags": "rclone, tutorial, hello"
+    }
+]
