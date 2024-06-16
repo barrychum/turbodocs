@@ -8,7 +8,11 @@
         "tags": "css, design, tutorial"
     },
     {
+        "file": "subfolder/file4.md",
+        "tags": "example, markdown, front matter"
+    },
+    {
         "file": "subfolder/file3.md",
-        "tags": "rclone, tutorial, hello"
+        "tags": "example, image2"
     }
 ]

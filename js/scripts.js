@@ -6,7 +6,7 @@ const fetchMarkdownFiles = async () => {
     const response = await fetch('markdowns/index.json');
     items = await response.json();
     const options = {
-        keys: ['tags'],
+        keys: ['file', 'tags'], // Include both 'file' and 'tags' in the search keys
         threshold: 0.3
     };
     fuse = new Fuse(items, options);
@@ -19,12 +19,23 @@ const adjustRelativePaths = (htmlContent, filePath) => {
     });
 };
 
+const extractFrontMatter = (text) => {
+    const frontMatterMatch = text.match(/^---[\s\S]+?---/);
+    if (frontMatterMatch) {
+        const frontMatter = frontMatterMatch[0];
+        const content = text.replace(frontMatter, '');
+        return { frontMatter, content };
+    }
+    return { frontMatter: '', content: text };
+};
+
 const renderMarkdown = async (file) => {
     const response = await fetch(`markdowns/${file}`);
     let text = await response.text();
-    text = marked.parse(text);
-    text = adjustRelativePaths(text, `markdowns/${file}`);
-    document.getElementById('content').innerHTML = text;
+    const { frontMatter, content } = extractFrontMatter(text);
+    const htmlContent = marked.parse(content);
+    const adjustedHtmlContent = adjustRelativePaths(htmlContent, `markdowns/${file}`);
+    document.getElementById('content').innerHTML = `<div class="front-matter">${marked.parse(frontMatter)}</div>${adjustedHtmlContent}`;
 };
 
 const createResultElement = (item) => {
@@ -58,11 +69,15 @@ const handleKeyDown = (e) => {
     const resultsDiv = document.getElementById('results');
     const results = resultsDiv.querySelectorAll('.result');
     if (e.key === 'ArrowDown') {
+        e.preventDefault();
         selectedResultIndex = (selectedResultIndex + 1) % results.length;
         updateResults(fuse.search(document.getElementById('search').value));
+        results[selectedResultIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
         selectedResultIndex = (selectedResultIndex - 1 + results.length) % results.length;
         updateResults(fuse.search(document.getElementById('search').value));
+        results[selectedResultIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else if (e.key === 'Enter') {
         if (selectedResultIndex >= 0 && selectedResultIndex < results.length) {
             results[selectedResultIndex].click();
