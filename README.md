@@ -16,7 +16,8 @@ This project is a simple Content Management System (CMS) for managing and viewin
 │   ├── file2.md
 │   ├── /subfolder
 │   │   ├── file3.md
-│   │   └── image.png
+│   │   └── /assets
+│   │       └── image.png
 │   └── index.json
 └── generate_index.py
 ```
